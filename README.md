@@ -11,6 +11,8 @@ There is most certainly some more efficient way to use `tar` and to ignore unwan
 However after trying a bit I couldn't succeed.
 I wasn't satisfied with neither `--exclude-ignore=".gitignore"` nor `--exclude-vcs-ignores`.
 
+- It seems `--exclude-vcs-ignores` doesn't recursively read .gitignore.
+
 ## What it does
 
 I wanted a way to aggregate all `.gitignore`(s) in a recursive way under some directory.
