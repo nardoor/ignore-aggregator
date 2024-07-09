@@ -49,7 +49,7 @@ fn check_args(args: &IgnoreAggregatorArgs) -> Result<(), String> {
 fn list_git_ignore_files(reference_directory: &str) -> IOResult<Vec<String>> {
     let reference_path = Path::new(reference_directory);
     let mut to_explore = vec![reference_path.to_path_buf()];
-    let mut git_ignore_file_pathes = vec![];
+    let mut git_ignore_file_paths = vec![];
 
     while let Some(path) = to_explore.pop() {
         let Ok(read_dir) = read_dir(path.clone()) else {
@@ -67,13 +67,13 @@ fn list_git_ignore_files(reference_directory: &str) -> IOResult<Vec<String>> {
                     ) == ".gitignore"
                 {
                     // unwrap because the former condition already has an "expect" on `entry_path.file_name()`
-                    git_ignore_file_pathes.push(entry_path.to_str().unwrap().to_owned());
+                    git_ignore_file_paths.push(entry_path.to_str().unwrap().to_owned());
                 }
             }
         }
     }
 
-    Ok(git_ignore_file_pathes)
+    Ok(git_ignore_file_paths)
 }
 
 fn re_reference_git_ignore_file(git_ignore_path: &str) -> IOResult<Vec<String>> {
@@ -107,7 +107,7 @@ fn main() {
     }
     println!("Scanning for .gitignore files");
     match list_git_ignore_files(&args.reference_directory) {
-        Ok(git_ignore_file_pathes) => {
+        Ok(git_ignore_file_paths) => {
             let mut output_file = match File::options()
                 .create_new(true)
                 .write(true)
@@ -119,9 +119,13 @@ fn main() {
                     return;
                 }
             };
-            println!("Found {} git ignore files", git_ignore_file_pathes.len());
-            for path in git_ignore_file_pathes {
+            println!("Found {} git ignore files", git_ignore_file_paths.len());
+            for path in git_ignore_file_paths {
                 println!("{path:?}");
+                // write gitignore path for reference
+                output_file.write_all(b"# ").unwrap();
+                output_file.write_all(path.as_bytes()).unwrap();
+                output_file.write(b"\n").unwrap();
                 let re_referenced = re_reference_git_ignore_file(&path).unwrap();
                 for ignore in re_referenced {
                     output_file.write_all(ignore.as_bytes()).unwrap();
